@@ -1,11 +1,21 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
+const axios = require('axios');
 let books = require("./booksdb.js");
 let isValid = require("./auth_users.js").isValid;
 let users = require("./auth_users.js").users;
 let authenticatedUser = require("./auth_users.js").authenticatedUser;
 
 const public_users = express.Router();
+const BOOKS_API_URL = "http://localhost:5000";
+
+/**
+ * Fetches the complete books catalog from the public API using Axios (async/await).
+ */
+const fetchBooksWithAxios = async () => {
+  const response = await axios.get(`${BOOKS_API_URL}/`);
+  return response.data;
+};
 
 /**
  * Route: POST /login
@@ -53,8 +63,8 @@ public_users.post("/register", (req, res) => {
 
 /**
  * Route: GET /
- * Description: Retrieves the complete list of available books using async/await and Promises (Task 10).
- * Logic: Resolves a Promise containing the books database object.
+ * Description: Retrieves the complete list of available books (Task 10).
+ * Logic: Serves the local books catalog. Other public GET routes consume this endpoint with Axios.
  */
 public_users.get('/', async function (req, res) {
   try {
@@ -77,24 +87,18 @@ public_users.get('/', async function (req, res) {
 
 /**
  * Route: GET /isbn/:isbn
- * Description: Retrieves book details based on ISBN using async/await and Promises (Task 11).
- * Logic: Looks up the book object using the ISBN as a key in the books database.
+ * Description: Retrieves book details based on ISBN using Axios with async/await (Task 11).
+ * Logic: Fetches the catalog via Axios, then looks up the book by ISBN key.
  */
 public_users.get('/isbn/:isbn', async function (req, res) {
   try {
     const isbn = req.params.isbn;
-    const getBookByISBN = (isbnKey) => {
-      return new Promise((resolve, reject) => {
-        if (books[isbnKey]) {
-          resolve(books[isbnKey]);
-        } else {
-          reject(new Error("Book not found"));
-        }
-      });
-    };
+    const booksData = await fetchBooksWithAxios();
 
-    const book = await getBookByISBN(isbn);
-    return res.status(200).json(book);
+    if (booksData[isbn]) {
+      return res.status(200).json(booksData[isbn]);
+    }
+    return res.status(404).json({ message: "Book not found" });
   } catch (error) {
     return res.status(404).json({ message: error.message || "Book not found" });
   }
@@ -102,28 +106,21 @@ public_users.get('/isbn/:isbn', async function (req, res) {
 
 /**
  * Route: GET /author/:author
- * Description: Retrieves books matching a specific author using async/await and Promises (Task 12).
- * Logic: Uses Object.values(books) to directly filter books matching the given author parameter.
+ * Description: Retrieves books matching a specific author using Axios with async/await (Task 12).
+ * Logic: Fetches the catalog via Axios, then filters books by the author request parameter.
  */
 public_users.get('/author/:author', async function (req, res) {
   try {
     const author = req.params.author;
-    const getBooksByAuthor = (authorName) => {
-      return new Promise((resolve, reject) => {
-        const filteredBooks = Object.values(books).filter(
-          (book) => book.author.toLowerCase() === authorName.toLowerCase()
-        );
+    const booksData = await fetchBooksWithAxios();
+    const filteredBooks = Object.values(booksData).filter(
+      (book) => book.author.toLowerCase() === author.toLowerCase()
+    );
 
-        if (filteredBooks.length > 0) {
-          resolve(filteredBooks);
-        } else {
-          reject(new Error("Book not found"));
-        }
-      });
-    };
-
-    const filteredBooks = await getBooksByAuthor(author);
-    return res.status(200).json(filteredBooks);
+    if (filteredBooks.length > 0) {
+      return res.status(200).json(filteredBooks);
+    }
+    return res.status(404).json({ message: "Book not found" });
   } catch (error) {
     return res.status(404).json({ message: error.message || "Book not found" });
   }
@@ -131,28 +128,21 @@ public_users.get('/author/:author', async function (req, res) {
 
 /**
  * Route: GET /title/:title
- * Description: Retrieves books matching a specific title using async/await and Promises (Task 13).
- * Logic: Uses Object.values(books) to directly filter books matching the given title parameter.
+ * Description: Retrieves books matching a specific title using Axios with async/await (Task 13).
+ * Logic: Fetches the catalog via Axios, then filters books by the title request parameter.
  */
 public_users.get('/title/:title', async function (req, res) {
   try {
     const title = req.params.title;
-    const getBooksByTitle = (bookTitle) => {
-      return new Promise((resolve, reject) => {
-        const filteredBooks = Object.values(books).filter(
-          (book) => book.title.toLowerCase() === bookTitle.toLowerCase()
-        );
+    const booksData = await fetchBooksWithAxios();
+    const filteredBooks = Object.values(booksData).filter(
+      (book) => book.title.toLowerCase() === title.toLowerCase()
+    );
 
-        if (filteredBooks.length > 0) {
-          resolve(filteredBooks);
-        } else {
-          reject(new Error("Book not found"));
-        }
-      });
-    };
-
-    const filteredBooks = await getBooksByTitle(title);
-    return res.status(200).json(filteredBooks);
+    if (filteredBooks.length > 0) {
+      return res.status(200).json(filteredBooks);
+    }
+    return res.status(404).json({ message: "Book not found" });
   } catch (error) {
     return res.status(404).json({ message: error.message || "Book not found" });
   }
