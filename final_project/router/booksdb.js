@@ -1,13 +1,5 @@
 let books = {
-      1: {
-            "author": "Chinua Achebe",
-            "title": "Things Fall Apart",
-            "reviews": {
-                  "Alice": "A classic novel that tells the story of Okonkwo, a respected warrior in Igbo society who struggles to adapt to the changing times.",
-                  "Bob": "A powerful and moving story about love, loss, and the impact of colonialism on traditional cultures.",
-                  "Charlie": "A must-read for anyone interested in African literature and culture."
-            }
-      },
+      1: { "author": "Chinua Achebe", "title": "Things Fall Apart", "reviews": {} },
       2: { "author": "Hans Christian Andersen", "title": "Fairy tales", "reviews": {} },
       3: { "author": "Dante Alighieri", "title": "The Divine Comedy", "reviews": {} },
       4: { "author": "Unknown", "title": "The Epic Of Gilgamesh", "reviews": {} },
